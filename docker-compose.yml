@@ -8,13 +8,15 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     environment:
-      POSTGRES_USER: "admin_user"
-      POSTGRES_PASSWORD: "admin"
-      POSTGRES_DB: "books"
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - "5432:5432"
+      - "${DB_PORT}:${DB_PORT}"
+    env_file:
+      - .env
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U admin_user -d books || exit 1" ]
+      test: [ "CMD-SHELL", "pg_isready -U admin_user -d support_practice || exit 1" ]
       interval: 5s
       timeout: 3s
       retries: 3
@@ -22,3 +24,4 @@ services:
 
 volumes:
   postgres_data:
+
