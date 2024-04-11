@@ -1,29 +1,18 @@
-from rest_framework import serializers, status
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
+from rest_framework.generics import CreateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.permissions import IsAuthenticated
 
-from .models import Issue
-
-
-class IssueSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Issue
-        fields = ["id", "title", "body", "junior_id", "senior_id"]
+from issues.models import Issue
+from issues.serializers import (IssueCreateSerializer,
+                                IssueRetrieveUpdateDestroySerializer)
 
 
-@api_view()
-def get_issues(request) -> Response:
-    issues = Issue.objects.all()
-    results = [IssueSerializer(issue).data for issue in issues]
-
-    return Response(data={"results": results})
+class IssueCreateAPIView(CreateAPIView):
+    queryset = Issue.objects.all()
+    serializer_class = IssueCreateSerializer
+    permission_classes = (IsAuthenticated,)
 
 
-@api_view(["POST"])
-def create_issue(request) -> Response:
-    serializer = IssueSerializer(data=request.data)
-    if serializer.is_valid():
-        issue = serializer
-        issue.save()
-        return Response(issue.data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class IssueRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
+    queryset = Issue.objects.all()
+    serializer_class = IssueRetrieveUpdateDestroySerializer
+    permission_classes = (IsAuthenticated,)

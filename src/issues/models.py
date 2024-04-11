@@ -1,21 +1,24 @@
+from enum import IntEnum
+
 from django.db import models
 
 from users.models import User
 
 
+class Status(IntEnum):
+    OPENED = 1
+    IN_PROGRESS = 2
+    CLOSED = 3
+
+
 class Issue(models.Model):
     title = models.CharField(max_length=100)
-    status = models.PositiveIntegerField()
-    junior = models.ForeignKey(
+    body = models.TextField()
+    status = models.PositiveIntegerField(null=True, default=Status.OPENED)
+    creator = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name="junior_issues",
-        default=None,
-    )
-    senior = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="senior_issues",
+        related_name="issues",
         default=None,
     )
 
