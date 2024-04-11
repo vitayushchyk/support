@@ -2,8 +2,10 @@ from rest_framework.generics import CreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import IsAuthenticated
 
 from issues.models import Issue
-from issues.serializers import (IssueCreateSerializer,
-                                IssueRetrieveUpdateDestroySerializer)
+from issues.serializers import (
+    IssueCreateSerializer,
+    IssueRetrieveUpdateDestroySerializer,
+)
 
 
 class IssueCreateAPIView(CreateAPIView):
