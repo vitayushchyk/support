@@ -14,5 +14,4 @@ jobs:
       - name: Install pipenv
         run: pip install pipenv && pipenv install -d
       - name: Run formatters
-        run: pipenv run black --check . && pipenv run isort --check .
-
+        run: pipenv run black --check . && pipenv run isort --check . --profile black
