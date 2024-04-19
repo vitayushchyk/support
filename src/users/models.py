@@ -9,8 +9,15 @@ from .managers import CustomUserManager
 
 class Role(IntEnum):
     ADMIN = 1
-    Senior = 2
+    SENIOR = 2
     JUNIOR = 3
+
+
+Role_CHOICES = (
+    (1, "Admin"),
+    (2, "Senior"),
+    (3, "Junior"),
+)
 
 
 class User(AbstractUser):
@@ -28,6 +35,7 @@ class User(AbstractUser):
         blank=False,
         null=False,
         default=Role.JUNIOR,
+        choices=Role_CHOICES,
     )
 
     objects = CustomUserManager()
@@ -41,12 +49,19 @@ class User(AbstractUser):
         Return the first_name plus the last_name, with a space in between.
         """
 
-        return f"{self.first_name} {self.last_name}".strip()
+        return f"{self.get_role_name()}: {self.first_name} {self.last_name}".strip()
 
     def get_short_name(self):
         """Return the short name for the user."""
 
         return self.first_name
+
+    def get_role_name(self):
+        return {
+            Role.ADMIN: "Administrator",
+            Role.SENIOR: "Senior",
+            Role.JUNIOR: "Junior",
+        }[Role(self.role)]
 
     def __str__(self) -> str:
         if self.first_name and self.last_name:
