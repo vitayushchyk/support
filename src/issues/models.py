@@ -11,10 +11,19 @@ class Status(IntEnum):
     CLOSED = 3
 
 
+ISSUE_STATUS_CHOICES = (
+    (1, "Opened"),
+    (2, "In progress"),
+    (3, "Closed"),
+)
+
+
 class Issue(models.Model):
     title = models.CharField(max_length=100)
     body = models.TextField()
-    status = models.PositiveIntegerField(null=True, default=Status.OPENED)
+    status = models.PositiveIntegerField(
+        null=True, default=Status.OPENED, choices=ISSUE_STATUS_CHOICES
+    )
     creator = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
