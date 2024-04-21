@@ -30,6 +30,14 @@ class Issue(models.Model):
         related_name="issues",
         default=None,
     )
+    assigning_to = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="work_issues",
+        default=None,
+        blank=True,
+        null=True,
+    )
 
     def __repr__(self) -> str:
         return f"Issue[{self.pk} {self.title[:10]}]"

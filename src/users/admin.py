@@ -10,6 +10,7 @@ class IssuesInline(admin.TabularInline):
     model = Issue
     readonly_fields = ("status", "body", "title")
     extra = 0
+    fk_name = "creator"
 
 
 @admin.register(User)
