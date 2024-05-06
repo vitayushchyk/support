@@ -13,7 +13,8 @@ RUN apt-get update -y \
     # cleaning up unused files
     && rm -rf /var/lib/apt/lists/*
 # Install project dependencies
-COPY ./Pipfile ./Pipfile.lock /
+COPY ./Pipfile /Pipfile
+COPY ./Pipfile.lock /Pipfile.lock
 
 RUN pipenv sync --dev --system
 

@@ -6,7 +6,7 @@ services:
       context: .
       args:
         DJANGO_ENV: development
-    command: [ "python", "-Wd", "./src/manage.py", "runserver", "0.0.0.0:${SERVER_PORT}" ]
+    command: [ "python", "./src/manage.py", "runserver", "0.0.0.0:${SERVER_PORT}" ]
     ports:
       - "${SERVER_PORT}:${SERVER_PORT}"
     environment:
@@ -37,6 +37,39 @@ services:
       interval: 5s
       timeout: 3s
       retries: 3
+
+
+  rabbitmq:
+    image: rabbitmq:3.6.6
+    ports:
+      - "5672:5672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=mypass
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+  worker:
+    build:
+      context: .
+      args:
+        DJANGO_ENV: development
+    command: ["python", "./src/manage.py",'celery', 'worker', '-A', 'app.app', '-l', 'info']
+    environment:
+      - BROKER_URL=amqp://admin:mypass@rabbitmq:5672//
+      - RESULT_BACKEND=redis://redis:6379/0
+      - C_FORCE_ROOT=true
+      - DJANGO_SETTINGS_MODULE=config.settings
+    volumes:
+      - "./:/usr/app"
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - rabbitmq
+      - redis
+
 
 
 volumes:
