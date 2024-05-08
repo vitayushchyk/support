@@ -35,6 +35,7 @@ Please use `make <target>' where <target> is one of
   run_migrate               Run migrate
 
 ```
+
 - Run and build application:
 ```
     make build_and_run
