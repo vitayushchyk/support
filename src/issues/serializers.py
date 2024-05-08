@@ -30,19 +30,18 @@ class IssueRetrieveUpdateDestroySerializer(serializers.ModelSerializer):
 
 
 class MessageSerializer(serializers.ModelSerializer):
-    class MessageSerializer(serializers.ModelSerializer):
-        user = serializers.HiddenField(default=serializers.CurrentUserDefault())
-        issue = serializers.PrimaryKeyRelatedField(queryset=Issue.objects.all())
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    issue = serializers.PrimaryKeyRelatedField(queryset=Issue.objects.all())
 
-        class Meta:
-            model = Message
-            fields = "__all__"
+    class Meta:
+        model = Message
+        fields = "__all__"
 
-        def save(self):
-            if (user := self.validated_data.pop("user", None)) is not None:
-                self.validated_data["user_id"] = user.id
+    def save(self):
+        if (user := self.validated_data.pop("user", None)) is not None:
+            self.validated_data["user_id"] = user.id
 
-            if (issue := self.validated_data.pop("issue", None)) is not None:
-                self.validated_data["issue_id"] = issue.id
+        if (issue := self.validated_data.pop("issue", None)) is not None:
+            self.validated_data["issue_id"] = issue.id
 
-            return super().save()
+        return super().save()

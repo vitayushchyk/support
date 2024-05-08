@@ -39,8 +39,6 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "drf_spectacular",
     "users",
-    "university",
-    "books",
     "issues",
     "rest_framework_simplejwt",
     "rest_framework",
@@ -157,3 +155,11 @@ SIMPLE_JWT = {
 }
 
 APPEND_SLASH = False
+
+CELERY_BROKER_URL = os.getenv("REDIS_URL", default="redis://broker:6379/0")
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "mailing"
+EMAIL_PORT = 1025
+EMAIL_HOST_USER = "mailhog"
+EMAIL_HOST_PASSWORD = "mailhog"

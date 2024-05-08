@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from users.models import User
+from users.models import ActivationKey, User
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
@@ -37,6 +37,9 @@ class UserCreateSerializer(serializers.ModelSerializer):
             role=validated_data["role"],
         )
         user.save()
+        ActivationKey(
+            user=user,
+        ).save()
         return user
 
 

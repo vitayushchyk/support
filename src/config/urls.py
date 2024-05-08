@@ -11,7 +11,11 @@ from issues.api import (
     issues_take,
     messages_api_dispatcher,
 )
-from users.appi import UserCreateAPIView, UserRetrieveUpdateDestroyAPIView
+from users.appi import (
+    UserActivateAPIView,
+    UserCreateAPIView,
+    UserRetrieveUpdateDestroyAPIView,
+)
 
 urlpatterns = [
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
@@ -33,6 +37,7 @@ urlpatterns = [
     # TOKEN
     path("auth/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     # USER
+    path("users/activation/", UserActivateAPIView.as_view(), name="users-activation"),
     path("user/", UserCreateAPIView.as_view(), name="user-create"),
     path(
         "user/<int:pk>",
