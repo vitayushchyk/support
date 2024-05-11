@@ -48,6 +48,3 @@ class Message(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     issue = models.ForeignKey(Issue, on_delete=models.CASCADE)
-
-    # update on any update in the colum
-    #  updated = models.DateTimeField(auto_now=True)

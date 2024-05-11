@@ -20,6 +20,22 @@ Firstly, you need to have Docker installed in your system. If you haven't instal
 
 ### Commands:
 
+- To list available commands for make: 
+```shell
+$ make
+
+Please use `make <target>' where <target> is one of
+  build_and_run             Run and build application
+  drop_all_containers       Drop all containers
+  help                      Display help message
+  make_migrate              Make migrate
+  make_super_user           Create super user
+  open_shell                Open shell to the app container
+  run_app                   Run application
+  run_migrate               Run migrate
+
+```
+
 - Run and build application:
 ```
     make build_and_run

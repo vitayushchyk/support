@@ -18,8 +18,10 @@ COPY ./Pipfile.lock /Pipfile.lock
 
 RUN pipenv sync --dev --system
 
+WORKDIR /usr/app/src
+
 COPY . .
 
 ENV DJANGO_SETTINGS_MODULE=config.settings
 
-CMD [ "python", "-Wd", "./src/manage.py", "runserver", "0.0.0.0:$PORT" ]
+CMD [ "python", "-Wd", "./manage.py", "runserver", "0.0.0.0:$PORT" ]
