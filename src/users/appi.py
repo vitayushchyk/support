@@ -1,3 +1,7 @@
+import uuid
+
+from django.core.cache import cache
+from django.urls import reverse
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import CreateAPIView, RetrieveUpdateDestroyAPIView
@@ -18,10 +22,14 @@ class UserCreateAPIView(CreateAPIView):
     def perform_create(self, serializer: UserCreateSerializer):
         super().perform_create(serializer)
         user: User = serializer.instance
-        activation_key = user.activationkey_set.all()[0]
+        activation_key = uuid.uuid4()
+        cache.set(f"{activation_key}", user.pk, timeout=60 * 60)
+        activation_url = reverse(
+            "users-activation", kwargs={"activation_key": activation_key}
+        )
         send_activation_mail.delay(
             recipient=user.email,
-            activation_link=f"Please activate your account: {activation_key.key}",
+            activation_link=self.request.build_absolute_uri(activation_url),
         )
 
 
@@ -37,14 +45,19 @@ class UserRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
 
 
 class UserActivateAPIView(APIView):
-    def post(self, request, *args, **kwargs):
-        activation_key = request.data.get("key")
-        if not activation_key:
+    def get(self, request, activation_key, *args, **kwargs):
+        user_id = cache.get(f"{activation_key}")
+        if user_id is None:
             return Response(
-                {"error": "Missing activation key"}, status=status.HTTP_400_BAD_REQUEST
+                {"error": "Invalid activation key"}, status=status.HTTP_400_BAD_REQUEST
             )
-        user = User.objects.get(activationkey__key=activation_key)
+        try:
+            user = User.objects.get(pk=user_id)
+        except User.DoesNotExist:
+            return Response(
+                {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
+            )
         user.is_active = True
-        user.activationkey_set.all().delete()
         user.save()
+        cache.delete(f"{activation_key}")
         return Response({"message": "Your email is successfully activated"})
