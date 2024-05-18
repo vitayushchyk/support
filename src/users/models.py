@@ -1,4 +1,3 @@
-import uuid
 from enum import IntEnum
 
 from django.contrib.auth.models import AbstractUser
@@ -69,13 +68,3 @@ class User(AbstractUser):
             return self.get_full_name()
         else:
             return self.email
-
-
-class ActivationKey(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    key = models.CharField(
-        max_length=100, unique=True, default=uuid.uuid4, editable=False
-    )
-
-    def __str__(self):
-        return f"Activation Key for {self.user.username}"
