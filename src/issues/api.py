@@ -1,14 +1,14 @@
 from django.db.models import Q
-from rest_framework import response, serializers, status
-from rest_framework.decorators import api_view
+from rest_framework import response, status
 from rest_framework.generics import (
     CreateAPIView,
     ListAPIView,
     RetrieveUpdateDestroyAPIView,
 )
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import BasePermission, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from issues.models import Issue, Message, Status
 from issues.serializers import (
@@ -17,6 +17,15 @@ from issues.serializers import (
     MessageSerializer,
 )
 from users.models import Role
+
+
+class IsSenior(BasePermission):
+    """
+    Allows access only to authenticated users.
+    """
+
+    def has_permission(self, request, view):
+        return bool(request.user and request.user.role == Role.SENIOR)
 
 
 class IssueCreateAPIView(CreateAPIView):
@@ -59,71 +68,63 @@ class IssueListAPIView(ListAPIView):
             return Issue.objects.none()
 
 
-@api_view(["GET", "POST"])
-def messages_api_dispatcher(request: Request, issue_id: int):
-    if request.method == "GET":
-        messages = Message.objects.filter(
-            Q(
-                issue__id=issue_id,
-            )
-            & (
-                Q(
-                    user=request.user,
-                )
-            )
-        ).order_by("-timestamp")
-        serializer = MessageSerializer(messages, many=True)
+class MessageListAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = MessageSerializer
 
-        return response.Response(serializer.data)
-    else:
+    def get(self, request: Request, issue_id: int):
+        messages = Message.objects.filter(
+            Q(issue__id=issue_id) & Q(user=request.user)
+        ).order_by("-timestamp")
+        serializer = self.serializer_class(messages, many=True)
+        return Response(serializer.data)
+
+    def post(self, request: Request, issue_id: int):
         issue = Issue.objects.get(id=issue_id)
         payload = request.data | {"issue": issue.id} | {"user": request.user.id}
-        serializer = MessageSerializer(data=payload, context={"request": request})
+        serializer = self.serializer_class(data=payload, context={"request": request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
-
-        return response.Response(serializer.validated_data)
-
-
-@api_view(["PUT"])
-def issues_close(request: Request, pk: int):
-    issue = Issue.objects.get(pk=pk)
-
-    if request.user.role != Role.SENIOR:
-        raise PermissionError("Only senior users can take issues")
-
-    if issue.status != Status.IN_PROGRESS:
-        return Response(
-            {"message": "Issue must be in 'IN_PROGRESS' state to be closed."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-    issue.assigning_to = request.user
-    issue.senior = request.user
-    issue.status = Status.CLOSED
-    issue.save()
-
-    serializer = IssueRetrieveUpdateDestroySerializer(issue)
-    return response.Response(serializer.data)
+        return Response(serializer.validated_data)
 
 
-@api_view(["PUT"])
-def issues_take(request: Request, pk: int):
-    issue = Issue.objects.get(id=pk)
+class IssueCloseUpdateAPIView(APIView):
+    permission_classes = (IsAuthenticated, IsSenior)
+    serializer_class = IssueRetrieveUpdateDestroySerializer
 
-    if request.user.role != Role.SENIOR:
-        raise PermissionError("Only senior users can take issues")
+    def put(self, request: Request, pk: int):
+        issue = Issue.objects.get(pk=pk)
 
-    if (issue.status != Status.OPENED) or (issue.creator.role is None):
+        if issue.status != Status.IN_PROGRESS:
+            return Response(
+                {"message": "Issue must be in 'IN_PROGRESS' state to be closed."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        issue.assigning_to = request.user
+        issue.senior = request.user
+        issue.status = Status.CLOSED
+        issue.save()
 
-        return response.Response(
-            {"message": "Issue is not Opened or senior is set..."},
-            status=422,
-        )
-    else:
+        serializer = self.serializer_class(issue)
+        return response.Response(serializer.data)
+
+
+class IssueTakeUpdateAPIView(APIView):
+    permission_classes = (IsAuthenticated, IsSenior)
+    serializer_class = IssueCreateSerializer
+
+    def put(self, request: Request, pk: int):
+        issue = Issue.objects.get(pk=pk)
+
+        if (issue.status != Status.OPENED) or (issue.creator.role is None):
+            return response.Response(
+                {"message": "Issue is not Opened or senior is set..."},
+                status=422,
+            )
+
         issue.assigning_to = request.user
         issue.senior = request.user
         issue.status = Status.IN_PROGRESS
         issue.save()
-
-    serializer = IssueCreateSerializer(issue)
-    return response.Response(serializer.data)
+        serializer = self.serializer_class(issue)
+        return response.Response(serializer.data)
