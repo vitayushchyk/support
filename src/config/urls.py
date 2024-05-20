@@ -3,13 +3,13 @@ from django.urls import path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from issues.api import (
+from issues.api import (  # issues_close,; issues_take,; messages_api_dispatcher,
+    IssueCloseUpdateAPIView,
     IssueCreateAPIView,
     IssueListAPIView,
     IssueRetrieveUpdateDestroyAPIView,
-    issues_close,
-    issues_take,
-    messages_api_dispatcher,
+    IssueTakeUpdateAPIView,
+    MessageListAPIView,
 )
 from users.appi import (
     UserActivateAPIView,
@@ -30,10 +30,16 @@ urlpatterns = [
         IssueRetrieveUpdateDestroyAPIView.as_view(),
         name="retrieve-update-destroy",
     ),
-    path("issues/<int:pk>/close", issues_close),
-    path("issues/<int:pk>/take", issues_take),
+    path(
+        "issues/<int:pk>/close/", IssueCloseUpdateAPIView.as_view(), name="issue-close"
+    ),
+    path("issues/<int:pk>/take/", IssueTakeUpdateAPIView.as_view(), name="issue-take"),
     # MESSAGES
-    path("issues/<int:issue_id>/messages", messages_api_dispatcher),
+    path(
+        "issues/<int:issue_id>/messages/",
+        MessageListAPIView.as_view(),
+        name="issue-messages",
+    ),
     # TOKEN
     path("auth/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     # USER

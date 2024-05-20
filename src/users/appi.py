@@ -45,6 +45,8 @@ class UserRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
 
 
 class UserActivateAPIView(APIView):
+    serializer_class = None
+
     def get(self, request, activation_key, *args, **kwargs):
         user_id = cache.get(f"{activation_key}")
         if user_id is None:
